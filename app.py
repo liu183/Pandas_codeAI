@@ -69,8 +69,8 @@ class StreamlitUI:
         da_prompt = st.sidebar.text_area('数据分析提示词', value=INTERPRETER_CN)
         plugin_prompt = st.sidebar.text_area('插件提示词', value=PLUGIN_CN)
         model_path = st.sidebar.text_input(
-            '模型路径：', value='/share/model_repos/internlm2-chat-7b')
-            # '模型路径：', value='internlm/internlm2-chat-20b')
+            # '模型路径：', value='/share/model_repos/internlm2-chat-7b')
+            '模型路径：', value='internlm/internlm2-chat-20b')
         if model_name != st.session_state['model_selected'] or st.session_state[
                 'model_path'] != model_path:
             st.session_state['model_path'] = model_path

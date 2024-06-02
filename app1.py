@@ -5,14 +5,14 @@ import os
 
 import streamlit as st
 
-from lagent.actions import ActionExecutor, ArxivSearch, IPythonInterpreter
+from lagent.actions import ActionExecutor, IPythonInterpreter
+from lagent.actions.weather import WeatherQuery
 from lagent.agents.internlm2_agent import INTERPRETER_CN, META_CN, PLUGIN_CN, Internlm2Agent, Internlm2Protocol
-from lagent.llms import HFTransformer
+from lagent.llms.lmdepoly_wrapper import LMDeployClient
 from lagent.llms.meta_template import INTERNLM2_META as META
 from lagent.schema import AgentStatusCode
 
 # from streamlit.logger import get_logger
-
 
 class SessionState:
 
@@ -22,8 +22,7 @@ class SessionState:
         st.session_state['user'] = []
 
         action_list = [
-            ArxivSearch(),
-            # WeatherQuery(),
+            WeatherQuery(),
         ]
         st.session_state['plugin_map'] = {
             action.name: action
@@ -54,12 +53,12 @@ class StreamlitUI:
         """Initialize Streamlit's UI settings."""
         st.set_page_config(
             layout='wide',
-            page_title='Pandas AI-web',
-            page_icon='./docs/imgs/Pandas.png')
-        st.header(':robot_face: :blue[数据分析大佬] Web UI', divider='rainbow')
-        st.sidebar.title('参数配置')
+            page_title='lagent-web',
+            page_icon='./docs/imgs/lagent_icon.png')
+        st.header(':robot_face: :blue[Lagent] Web Demo ', divider='rainbow')
+        st.sidebar.title('模型控制')
         st.session_state['file'] = set()
-        st.session_state['model_path'] = None
+        st.session_state['ip'] = None
 
     def setup_sidebar(self):
         """Setup the sidebar for model and plugin selection."""
@@ -68,13 +67,11 @@ class StreamlitUI:
         meta_prompt = st.sidebar.text_area('系统提示词', value=META_CN)
         da_prompt = st.sidebar.text_area('数据分析提示词', value=INTERPRETER_CN)
         plugin_prompt = st.sidebar.text_area('插件提示词', value=PLUGIN_CN)
-        model_path = st.sidebar.text_input(
-            '模型路径：', value='/share/model_repos/internlm2-chat-7b')
-            # '模型路径：', value='internlm/internlm2-chat-20b')
-        if model_name != st.session_state['model_selected'] or st.session_state[
-                'model_path'] != model_path:
-            st.session_state['model_path'] = model_path
-            model = self.init_model(model_name, model_path)
+        model_ip = st.sidebar.text_input('模型IP：', value='10.140.0.220:23333')
+        if model_name != st.session_state[
+                'model_selected'] or st.session_state['ip'] != model_ip:
+            st.session_state['ip'] = model_ip
+            model = self.init_model(model_name, model_ip)
             self.session_state.clear_state()
             st.session_state['model_selected'] = model_name
             if 'chatbot' in st.session_state:
@@ -115,17 +112,19 @@ class StreamlitUI:
             self.session_state.clear_state()
         uploaded_file = st.sidebar.file_uploader('上传文件')
 
-        return model_name, model, plugin_action, uploaded_file, model_path
+        return model_name, model, plugin_action, uploaded_file, model_ip
 
-    def init_model(self, model_name, path):
+    def init_model(self, model_name, ip=None):
         """Initialize the model based on the input model name."""
-        st.session_state['model_map'][model_name] = HFTransformer(
-            path=path,
+        model_url = f'http://{ip}'
+        st.session_state['model_map'][model_name] = LMDeployClient(
+            model_name=model_name,
+            url=model_url,
             meta_template=META,
             max_new_tokens=1024,
             top_p=0.8,
-            top_k=None,
-            temperature=0.1,
+            top_k=100,
+            temperature=0,
             repetition_penalty=1.0,
             stop_words=['<|im_end|>'])
         return st.session_state['model_map'][model_name]
@@ -226,9 +225,9 @@ def main():
     else:
         st.set_page_config(
             layout='wide',
-            page_title='Pandas AI-web',
-            page_icon='./docs/imgs/Pandas.png')
-        st.header(':robot_face: :blue[数据分析大佬] Web UI ', divider='rainbow')
+            page_title='lagent-web',
+            page_icon='./docs/imgs/lagent_icon.png')
+        st.header(':robot_face: :blue[Lagent] Web Demo ', divider='rainbow')
     _, model, plugin_action, uploaded_file, _ = st.session_state[
         'ui'].setup_sidebar()
 

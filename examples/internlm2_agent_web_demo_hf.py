@@ -23,7 +23,6 @@ class SessionState:
 
         action_list = [
             ArxivSearch(),
-            # WeatherQuery(),
         ]
         st.session_state['plugin_map'] = {
             action.name: action
@@ -54,10 +53,10 @@ class StreamlitUI:
         """Initialize Streamlit's UI settings."""
         st.set_page_config(
             layout='wide',
-            page_title='Pandas AI-web',
-            page_icon='./docs/imgs/Pandas.png')
-        st.header(':robot_face: :blue[数据分析大佬] Web UI', divider='rainbow')
-        st.sidebar.title('参数配置')
+            page_title='lagent-web',
+            page_icon='./docs/imgs/lagent_icon.png')
+        st.header(':robot_face: :blue[Lagent] Web Demo ', divider='rainbow')
+        st.sidebar.title('模型控制')
         st.session_state['file'] = set()
         st.session_state['model_path'] = None
 
@@ -69,8 +68,7 @@ class StreamlitUI:
         da_prompt = st.sidebar.text_area('数据分析提示词', value=INTERPRETER_CN)
         plugin_prompt = st.sidebar.text_area('插件提示词', value=PLUGIN_CN)
         model_path = st.sidebar.text_input(
-            '模型路径：', value='/share/model_repos/internlm2-chat-7b')
-            # '模型路径：', value='internlm/internlm2-chat-20b')
+            '模型路径：', value='internlm/internlm2-chat-20b')
         if model_name != st.session_state['model_selected'] or st.session_state[
                 'model_path'] != model_path:
             st.session_state['model_path'] = model_path
@@ -226,9 +224,9 @@ def main():
     else:
         st.set_page_config(
             layout='wide',
-            page_title='Pandas AI-web',
-            page_icon='./docs/imgs/Pandas.png')
-        st.header(':robot_face: :blue[数据分析大佬] Web UI ', divider='rainbow')
+            page_title='lagent-web',
+            page_icon='./docs/imgs/lagent_icon.png')
+        st.header(':robot_face: :blue[Lagent] Web Demo ', divider='rainbow')
     _, model, plugin_action, uploaded_file, _ = st.session_state[
         'ui'].setup_sidebar()
 
